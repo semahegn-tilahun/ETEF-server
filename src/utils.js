@@ -15,3 +15,5 @@ export function isValidEmail(value) {
 export function isValidUrl(value) {
   try { return Boolean(value && new URL(value)); } catch { return false; }
 }
+
+export function isUuid(value) { return /^[0-9a-f-]{36}$/i.test(String(value || "")); }

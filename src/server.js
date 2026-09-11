@@ -6,7 +6,9 @@ import healthRouter from "./routes/health.js";
 import authRouter from "./routes/auth.js";
 import cmsRouter from "./routes/cms.js";
 import { ensureUploadDirectories } from "./controllers/galleryController.js";
+import { ensurePartnerUploadDirectory } from "./controllers/partnerController.js";
 import galleryRouter from "./routes/gallery.js";
+import partnersRouter from "./routes/partners.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -37,11 +39,12 @@ app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1", cmsRouter);
 app.use("/api/v1", galleryRouter);
+app.use("/api/v1", partnersRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-ensureUploadDirectories().then(() => {
+Promise.all([ensureUploadDirectories(), ensurePartnerUploadDirectory()]).then(() => {
   app.listen(env.port, () => {
     console.log(`ETEF API running on port ${env.port}`);
   });
