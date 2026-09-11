@@ -5,12 +5,29 @@ uploads/*
 !uploads/gallery/
 uploads/.tmp/
 
-# zip files
+# Ignore environment variable files
+.env
+
+# Ignore log files
+*.log
+
+# Ignore build artifacts
+dist/
+
+# Ignore OS-specific files
+.DS_Store
+
+# Ignore IDE-specific files
+.idea/
+
+# Ignore VScode-specific files
+.vscode/
+
+# Ignore zip files
 *.zip
 
-# env files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.example
+# Ignore md files
+# *.md
+README004.md
+MIGRATION_0007.md
+

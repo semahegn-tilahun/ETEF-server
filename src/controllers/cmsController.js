@@ -26,3 +26,33 @@ export async function applicationStats(req,res,next){try{const r=await query(`SE
 export async function updateApplication(req,res,next){try{const status=String(req.body?.status||"").toUpperCase();if(!["PENDING","REVIEW","APPROVED","REJECTED"].includes(status))return res.status(400).json({success:false,message:"Invalid application status."});const r=await query(`UPDATE membership_applications SET status=$1,reviewed_at=NOW(),reviewed_by=$2 WHERE id=$3 RETURNING *`,[status,req.admin.id,req.params.id]);if(!r.rowCount)return res.status(404).json({success:false,message:"Application not found."});res.json({success:true,item:r.rows[0]})}catch(e){next(e)}}
 
 export async function submitMembership(req,res,next){try{const b=req.body||{};const required=["organizationName","organizationType","sector","region","city","address","members","vehicles","manager","managerPhone","email"];for(const k of required)if(!cleanString(b[k]))return res.status(400).json({success:false,message:`${k} is required.`});if(!isValidEmail(cleanString(b.email)))return res.status(400).json({success:false,message:"Valid organization email is required."});const r=await query(`INSERT INTO membership_applications(organization_name,organization_type,transport_sector,region,city,sub_city,woreda,office_address,phone,email,member_count,vehicle_count,general_manager_name,general_manager_phone,general_manager_email,federation_representative_name,federation_representative_phone) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id,submitted_at`,[cleanString(b.organizationName,255),cleanString(b.organizationType,100),cleanString(b.sector,100),cleanString(b.region,120),cleanString(b.city,120),cleanString(b.subCity,120)||null,cleanString(b.woreda,120)||null,cleanString(b.address,5000),cleanString(b.phone,50)||null,cleanString(b.email,255),positiveInt(b.members),positiveInt(b.vehicles),cleanString(b.manager,180),cleanString(b.managerPhone,50),cleanString(b.managerEmail,255)||null,cleanString(b.representative,180)||null,cleanString(b.representativePhone,50)||null]);const row=r.rows[0];const reference=`ETEF-${new Date(row.submitted_at).getFullYear()}-${row.id.replaceAll("-","").slice(-6).toUpperCase()}`;res.status(201).json({success:true,reference,id:row.id,submittedAt:row.submitted_at})}catch(e){next(e)}}
+
+export async function publicContent(req,res,next){
+  try {
+    const r=await query(`SELECT content_key,title_en,title_am,body_en,body_am FROM site_content WHERE is_published=TRUE ORDER BY content_key`);
+    res.json({success:true,items:r.rows});
+  } catch(e){next(e)}
+}
+
+export async function adminContent(req,res,next){
+  try {
+    const r=await query(`SELECT * FROM site_content ORDER BY content_key`);
+    res.json({success:true,items:r.rows});
+  } catch(e){next(e)}
+}
+
+export async function updateContent(req,res,next){
+  try {
+    const allowed=new Set(["about","vision","mission"]);
+    const key=String(req.params.key||"").toLowerCase();
+    if(!allowed.has(key)) return res.status(404).json({success:false,message:"Content item not found."});
+    const b=req.body||{};
+    const titleEn=cleanString(b.titleEn,500), bodyEn=cleanString(b.bodyEn,30000);
+    if(!titleEn||!bodyEn) return res.status(400).json({success:false,message:"English title and body are required."});
+    const r=await query(`UPDATE site_content SET title_en=$1,title_am=$2,body_en=$3,body_am=$4,is_published=COALESCE($5,is_published),updated_at=NOW(),updated_by=$6 WHERE content_key=$7 RETURNING *`,[
+      titleEn,cleanString(b.titleAm,500)||null,bodyEn,cleanString(b.bodyAm,30000)||null,typeof b.isPublished==="boolean"?b.isPublished:null,req.admin.id,key
+    ]);
+    if(!r.rowCount) return res.status(404).json({success:false,message:"Content item not found."});
+    res.json({success:true,item:r.rows[0]});
+  } catch(e){next(e)}
+}
