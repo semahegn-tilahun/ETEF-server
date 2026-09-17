@@ -1,0 +1,15 @@
+import { Router } from "express";
+import multer from "multer";
+import env from "../config/env.js";
+import { requireAuth, requireCsrf } from "../auth.js";
+import { publicHeroSlides, adminHeroSlides, createHeroSlide, updateHeroSlide, deleteHeroSlide } from "../controllers/heroController.js";
+const router=Router();
+const upload=multer({dest:env.uploadDir+"/.tmp",limits:{fileSize:5*1024*1024},fileFilter:(req,file,cb)=>cb(null,["image/jpeg","image/png","image/webp"].includes(file.mimetype))});
+const admin=[requireAuth,requireCsrf];
+const uploadOne=(req,res,next)=>upload.single("image")(req,res,err=>{if(err){if(err instanceof multer.MulterError&&err.code==="LIMIT_FILE_SIZE")return res.status(413).json({success:false,message:"Hero image must be 5 MB or smaller."});return res.status(400).json({success:false,message:err.message||"Invalid hero image upload."});}next();});
+router.get("/hero-slides",publicHeroSlides);
+router.get("/admin/hero-slides",requireAuth,adminHeroSlides);
+router.post("/admin/hero-slides",...admin,uploadOne,createHeroSlide);
+router.patch("/admin/hero-slides/:id",...admin,uploadOne,updateHeroSlide);
+router.delete("/admin/hero-slides/:id",...admin,deleteHeroSlide);
+export default router;

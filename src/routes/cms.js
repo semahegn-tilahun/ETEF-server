@@ -7,6 +7,7 @@ const admin = [requireAuth, requireCsrf];
 
 router.get("/faqs", c.publicFaqs);
 router.get("/vacancies", c.publicVacancies);
+router.get("/news", c.publicNews);
 router.get("/gallery/albums", c.publicAlbums);
 router.get("/settings", c.publicSettings);
 router.get("/content", c.publicContent);
@@ -18,8 +19,13 @@ router.patch("/admin/faqs/:id", ...admin, c.updateFaq);
 router.delete("/admin/faqs/:id", ...admin, c.deleteFaq);
 
 router.get("/admin/vacancies", requireAuth, c.adminVacancies);
+router.get("/admin/news", requireAuth, c.adminNews);
+router.post("/admin/news", ...admin, c.createNews);
+router.patch("/admin/news/:id", ...admin, c.updateNews);
+router.delete("/admin/news/:id", ...admin, c.deleteNews);
 router.post("/admin/vacancies", ...admin, c.createVacancy);
 router.patch("/admin/vacancies/:id", ...admin, c.updateVacancy);
+router.delete("/admin/vacancies/:id", ...admin, c.deleteVacancy);
 
 router.get("/admin/gallery/albums", requireAuth, c.adminAlbums);
 router.post("/admin/gallery/albums", ...admin, c.createAlbum);

@@ -8,6 +8,7 @@ const env = {
   dbPoolMax: Number(process.env.DB_POOL_MAX || 5),
   uploadDir: process.env.UPLOAD_DIR || "uploads",
   maxUploadBytes: Number(process.env.MAX_UPLOAD_BYTES || 5242880),
+  trustProxy: process.env.TRUST_PROXY === "1" || process.env.TRUST_PROXY === "true",
 };
 
 if (!env.databaseUrl) {
