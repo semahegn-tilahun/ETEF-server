@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import env from "../config/env.js";
 
 const buckets = new Map();
 const WINDOW_MS = 15 * 60 * 1000;
@@ -55,8 +56,9 @@ export function sameOriginForStateChanges(req, res, next) {
   if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) return next();
   const origin = req.get("Origin");
   if (!origin) return next();
-  const expected = String(process.env.CLIENT_ORIGIN || "").replace(/\/$/, "");
-  if (expected && origin.replace(/\/$/, "") !== expected) {
+
+  const normalizedOrigin = origin.replace(/\/$/, "");
+  if (!env.allowedOrigins.includes(normalizedOrigin)) {
     return res.status(403).json({ success: false, message: "Origin not allowed.", requestId: req.requestId });
   }
   next();
@@ -64,5 +66,7 @@ export function sameOriginForStateChanges(req, res, next) {
 
 setInterval(() => {
   const now = Date.now();
-  for (const [key, item] of buckets) if (now >= item.resetAt) buckets.delete(key);
+  for (const [key, item] of buckets) {
+    if (now >= item.resetAt) buckets.delete(key);
+  }
 }, 10 * 60 * 1000).unref();
