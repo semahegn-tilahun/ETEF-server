@@ -4,6 +4,7 @@ import helmet from "helmet";
 import env from "./config/env.js";
 import healthRouter from "./routes/health.js";
 import authRouter from "./routes/auth.js";
+import passwordResetRouter from "./routes/passwordReset.js";
 import cmsRouter from "./routes/cms.js";
 import { ensureUploadDirectories } from "./controllers/galleryController.js";
 import { ensurePartnerUploadDirectory } from "./controllers/partnerController.js";
@@ -62,6 +63,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/auth", passwordResetRouter);
 app.use("/api/v1", cmsRouter);
 app.use("/api/v1", galleryRouter);
 app.use("/api/v1", partnersRouter);

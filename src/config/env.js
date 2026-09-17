@@ -21,6 +21,13 @@ const env = {
   uploadDir: process.env.UPLOAD_DIR || "uploads",
   maxUploadBytes: Number(process.env.MAX_UPLOAD_BYTES || 5242880),
   trustProxy: process.env.TRUST_PROXY === "1" || process.env.TRUST_PROXY === "true",
+  clientResetUrl: process.env.CLIENT_RESET_URL || `${configuredOrigins[0] || "http://localhost:5173"}/admin/reset-password`,
+  smtpHost: process.env.SMTP_HOST || "",
+  smtpPort: Number(process.env.SMTP_PORT || 465),
+  smtpUser: process.env.SMTP_USER || "",
+  smtpPass: process.env.SMTP_PASS || "",
+  mailFrom: process.env.MAIL_FROM || process.env.SMTP_USER || "",
+  resendApiKey: process.env.RESEND_API_KEY || "",
 };
 
 if (!env.databaseUrl) {
