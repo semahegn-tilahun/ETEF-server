@@ -1,0 +1,14 @@
+import { Router } from "express";
+import multer from "multer";
+import env from "../config/env.js";
+import { requireAuth, requireCsrf } from "../auth.js";
+import { publicPartners, adminPartners, createPartner, updatePartner, deletePartner } from "../controllers/partnerController.js";
+const router=Router();
+const upload=multer({dest:env.uploadDir+"/.tmp",limits:{fileSize:2*1024*1024},fileFilter:(req,file,cb)=>cb(null,["image/jpeg","image/png","image/webp"].includes(file.mimetype))});
+const admin=[requireAuth,requireCsrf];
+router.get("/partners",publicPartners);
+router.get("/admin/partners",requireAuth,adminPartners);
+router.post("/admin/partners",...admin,(req,res,next)=>upload.single("logo")(req,res,err=>{if(err){if(err instanceof multer.MulterError && err.code==="LIMIT_FILE_SIZE")return res.status(413).json({success:false,message:"Partner logo must be 2 MB or smaller."});return res.status(400).json({success:false,message:err.message||"Invalid logo upload."});}next();}),createPartner);
+router.patch("/admin/partners/:id",...admin,(req,res,next)=>upload.single("logo")(req,res,err=>{if(err){if(err instanceof multer.MulterError && err.code==="LIMIT_FILE_SIZE")return res.status(413).json({success:false,message:"Partner logo must be 2 MB or smaller."});return res.status(400).json({success:false,message:err.message||"Invalid logo upload."});}next();}),updatePartner);
+router.delete("/admin/partners/:id",...admin,deletePartner);
+export default router;

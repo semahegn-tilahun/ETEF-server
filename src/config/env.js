@@ -1,0 +1,47 @@
+import "dotenv/config";
+
+function parseOrigins(value) {
+  return String(value || "")
+    .split(",")
+    .map((origin) => origin.trim().replace(/\/$/, ""))
+    .filter(Boolean);
+}
+
+const configuredOrigins = parseOrigins(
+  process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN || process.env.CORS_ORIGIN,
+);
+
+const nodeEnv = process.env.NODE_ENV || "development";
+const developmentOrigins = nodeEnv === "development"
+  ? ["http://localhost:5173", "http://127.0.0.1:5173"]
+  : [];
+const allowedOrigins = [...new Set([...(configuredOrigins.length ? configuredOrigins : ["http://localhost:5173"]), ...developmentOrigins])];
+
+const env = {
+  nodeEnv,
+  port: Number(process.env.PORT || 5000),
+  databaseUrl: process.env.DATABASE_URL,
+  allowedOrigins,
+  clientOrigin: configuredOrigins[0] || "http://localhost:5173",
+  dbPoolMax: Math.min(Math.max(Number(process.env.DB_POOL_MAX || 5), 1), 10),
+  uploadDir: process.env.UPLOAD_DIR || "uploads",
+  maxUploadBytes: Number(process.env.MAX_UPLOAD_BYTES || 5242880),
+  trustProxy: process.env.TRUST_PROXY === "1" || process.env.TRUST_PROXY === "true",
+  clientResetUrl: process.env.CLIENT_RESET_URL || `${configuredOrigins[0] || "http://localhost:5173"}/admin/reset-password`,
+  smtpHost: process.env.SMTP_HOST || "",
+  smtpPort: Number(process.env.SMTP_PORT || 465),
+  smtpUser: process.env.SMTP_USER || "",
+  smtpPass: process.env.SMTP_PASS || "",
+  mailFrom: process.env.MAIL_FROM || process.env.SMTP_USER || "",
+  resendApiKey: process.env.RESEND_API_KEY || "",
+};
+
+if (!env.databaseUrl) {
+  throw new Error("DATABASE_URL is required.");
+}
+
+if (!Number.isInteger(env.port) || env.port < 1 || env.port > 65535) {
+  throw new Error("PORT must be a valid TCP port.");
+}
+
+export default env;
